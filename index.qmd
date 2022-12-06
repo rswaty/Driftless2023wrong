@@ -1,0 +1,101 @@
+---
+title: "Past and Present Vegetation  in the Driftless Region"
+author:
+  - Randy Swaty
+  - Powered by LANDFIRE and the Center for Resilient Conservation Science
+format:
+  revealjs: 
+    theme: simple
+    
+editor: visual
+---
+
+```{r setup}
+#| include: false
+
+
+# for data wrangling and charts
+library(tidyverse)
+
+
+# for color
+library(paletteer)
+
+
+# for fonts
+library(showtext)
+font_add_google("Jost", "Jost")
+showtext_auto()
+theme_set(theme_minimal(base_family = "Jost"))
+
+# for mapping
+library(sf)
+library(raster)
+library(tmap)
+
+# for interactive widgets may not be needed
+library(htmlwidgets)
+
+```
+
+## Goals
+
+-   Use [LANDFIRE](https://landfire.gov/) products to:
+    -   ecosystems, past and present
+    -   compare historical and current fire regimes
+    -   identify under and over represented succession classes for dominant ecosystems
+    -   characterize existing vegetation cover and height
+-   Leverage data from the [Center for Resilient Conservation Science](https://crcs.tnc.org/) to:
+    -   quantify and map carbon values
+    -   map resilient and connected areas
+
+## Driftless Region
+
+::: columns
+::: {.column width="50%"}
+-   Blah Blah Blah
+-   Ann provides blah blah
+:::
+
+::: {.column width="50%"}
+```{r map}
+#| fig.alt: "Quick interactive map of Driftless Region."
+#| # make the base plot
+# read in shape
+shp <- st_read("data/dftls_NAD1983.shp", quiet = TRUE) %>% 
+  st_transform(crs = "+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs") %>%
+  st_union() %>%
+  st_sf()
+
+
+# make map
+
+library(tmap)
+
+tmap_mode("view")
+tm_shape(shp) +
+  tm_borders(col = "#2C632D", lwd = 3) +
+  tm_basemap("OpenStreetMap.Mapnik") + 
+  tm_view(set.view = c(-86, 44, 6))
+```
+:::
+:::
+
+## LANDFIRE Placeholder Slide
+
+-   LANDFIRE is...
+
+## TNC's LANDFIRE Team
+
+![](img/team_graphic_2022.png){fig-alt="A drawing of an elephant."}
+
+## Historical Ecosystems, Quantified
+
+![](img/bpsChart.png){fig-alt="A drawing of an elephant."}
+
+-   These top 10 cover most of the landscape
+-   Fire adapted ecosystems were dominant
+
+## Historical Ecosystems, Mapped
+
+![](img/bps.png){fig-alt="A drawing of an elephant."}
