@@ -17,17 +17,6 @@ editor: visual
 # for data wrangling and charts
 library(tidyverse)
 
-
-# for color
-library(paletteer)
-
-
-# for fonts
-library(showtext)
-font_add_google("Jost", "Jost")
-showtext_auto()
-theme_set(theme_minimal(base_family = "Jost"))
-
 # for mapping
 library(sf)
 library(raster)
@@ -38,18 +27,24 @@ library(htmlwidgets)
 
 ```
 
-## Goals
+## Goals 
 
 -   Use [LANDFIRE](https://landfire.gov/) products to:
-    -   ecosystems, past and present
+    -   characterize ecosystems, past and present
     -   compare historical and current fire regimes
-    -   identify under and over represented succession classes for dominant ecosystems
-    -   characterize existing vegetation cover and height
+    -   identify under and over represented succession classes 
 -   Leverage data from the [Center for Resilient Conservation Science](https://crcs.tnc.org/) to:
     -   quantify and map carbon values
     -   map resilient and connected areas
+    
+## Goals continued
 
-## Driftless Region
+-   Leverage data from the [Center for Resilient Conservation Science](https://crcs.tnc.org/) to:
+    -   quantify and map carbon values
+    -   map resilient and connected areas
+    
+
+## Driftless region
 
 ::: columns
 ::: {.column width="50%"}
@@ -81,7 +76,7 @@ tm_shape(shp) +
 :::
 :::
 
-## LANDFIRE Placeholder Slide
+## LANDFIRE placeholder slide
 
 -   LANDFIRE is...
 
@@ -89,13 +84,26 @@ tm_shape(shp) +
 
 ![](img/team_graphic_2022.png){fig-alt="A drawing of an elephant."}
 
-## Historical Ecosystems, Quantified
+
+
+## CRCS placeholder slide
+
+-   The Center for Resilient Conservation Science...blah blah
+
+## Historical ecosystems, quantified
 
 ![](img/bpsChart.png){fig-alt="A drawing of an elephant."}
 
--   These top 10 cover most of the landscape
--   Fire adapted ecosystems were dominant
 
-## Historical Ecosystems, Mapped
+## Map of most prevalent historic ecosystems
 
 ![](img/bps.png){fig-alt="A drawing of an elephant."}
+
+## Notes on historical ecosystems
+
+- Most dominant 5 historical ecosystems (ones mapped) covered ~80% of the landscape
+- SE to NW line close to state border represents a LANDFIRE Map Zone.  These are essentially 'data delivery polygons' and may/may not represent ecological borders
+- Dominant ecosystems were fire-adapted/dependent (more on that in later slide)
+
+*LANDFIRE [Biophysical Settings](https://landfire.gov/bps.php) data was used for the 'historical ecosystems' chart and map.* 
+
