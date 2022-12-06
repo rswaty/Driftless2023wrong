@@ -6,6 +6,7 @@ author:
 format:
   revealjs: 
     theme: simple
+    slide-number: true
     
 editor: visual
 ---
