@@ -1,0 +1,25 @@
+BpS,Sclass,Reference,Current
+Central Tallgrass Prairie,Regeneration,40,0
+Central Tallgrass Prairie,Agriculture,0,75
+Central Tallgrass Prairie,"Mid-development, open canopy",58,0
+Central Tallgrass Prairie,"Late-development, open canopy",2,0
+Central Tallgrass Prairie,Developed,0,6
+Central Tallgrass Prairie,UE,0,3
+Central Tallgrass Prairie,UN,0,11
+Dry-Mesic Oak Forest and Woodland,Regeneration,4,0
+Dry-Mesic Oak Forest and Woodland,Agriculture,0,68
+Dry-Mesic Oak Forest and Woodland,"Mid-development, open canopy",12,0
+Dry-Mesic Oak Forest and Woodland,"Mid-development2, open canopy",20,3
+Dry-Mesic Oak Forest and Woodland,"Mid-development3, open canopy",55,12
+Dry-Mesic Oak Forest and Woodland,Developed,0,6
+Dry-Mesic Oak Forest and Woodland,"Late-development, closed canopy",7,0
+Dry-Mesic Oak Forest and Woodland,UE,0,3
+Dry-Mesic Oak Forest and Woodland,UN,0,0
+Oak Savanna,Regeneration,17,0
+Oak Savanna,Agriculture,0,53
+Oak Savanna,"Mid-development, open canopy",47,0
+Oak Savanna,"Late-development, open canopy",30,7
+Oak Savanna,"Late-development2, open canopy",5,22
+Oak Savanna,Developed,0,9
+Oak Savanna,"Late-development3, closed canopy",1,0
+Oak Savanna,UE,0,5
