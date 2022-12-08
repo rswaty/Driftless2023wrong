@@ -1,51 +1,71 @@
 ---
-title: "Past and Present Vegetation  in the Driftless Region"
+title: "Exploring Vegetation Patterns in the Driftless Region, Past and Present"
 author:
   - Randy Swaty
   - Powered by LANDFIRE and the Center for Resilient Conservation Science
-format:
-  revealjs: 
-    theme: simple
-    slide-number: true
-    
-editor: visual
+format: revealjs
+editor: source
 ---
 
 ```{r setup}
 #| include: false
 
+options(scipen = 999999999)
 
 # for data wrangling and charts
 library(tidyverse)
+
+
+# for color
+library(paletteer)
+
+
+# for fonts
+library(showtext)
+font_add_google("Jost", "Jost")
+showtext_auto()
+theme_set(theme_minimal(base_family = "Jost"))
 
 # for mapping
 library(sf)
 library(raster)
 library(tmap)
 
-# for interactive widgets may not be needed
+# for interactive widgets/chord may not be needed
 library(htmlwidgets)
+library(networkD3)
 
+
+
+
+# data
+hist_fire <- read_csv("data/hist_fire.csv", 
+    col_types = cols(surface_acres = col_number(), 
+        mixed_acres = col_number(), replacement_acres = col_number(), 
+        all_acres = col_number())) %>%
+  pivot_longer(!"BPS_NAME", names_to = 'fire_type', values_to = 'acres_burned') %>%
+  group_by(BPS_NAME, fire_type) %>%
+  summarise(acres = sum(acres_burned)) 
+
+hist_fire$acres <- round(hist_fire$acres, 0)
+  
+
+
+  
 ```
 
-## Goals 
+## Goals
 
 -   Use [LANDFIRE](https://landfire.gov/) products to:
-    -   characterize ecosystems, past and present
+    -   ecosystems, past and present
     -   compare historical and current fire regimes
-    -   identify under and over represented succession classes 
+    -   identify under and over represented succession classes for dominant ecosystems
+    -   characterize existing vegetation cover and height
 -   Leverage data from the [Center for Resilient Conservation Science](https://crcs.tnc.org/) to:
     -   quantify and map carbon values
     -   map resilient and connected areas
-    
-## Goals continued
 
--   Leverage data from the [Center for Resilient Conservation Science](https://crcs.tnc.org/) to:
-    -   quantify and map carbon values
-    -   map resilient and connected areas
-    
-
-## Driftless region
+## Driftless Region
 
 ::: columns
 ::: {.column width="50%"}
@@ -77,7 +97,7 @@ tm_shape(shp) +
 :::
 :::
 
-## LANDFIRE placeholder slide
+## LANDFIRE Placeholder Slide
 
 -   LANDFIRE is...
 
@@ -85,26 +105,189 @@ tm_shape(shp) +
 
 ![](img/team_graphic_2022.png){fig-alt="A drawing of an elephant."}
 
-
-
-## CRCS placeholder slide
-
--   The Center for Resilient Conservation Science...blah blah
-
-## Historical ecosystems, quantified
+## Historical Ecosystems, Quantified
 
 ![](img/bpsChart.png){fig-alt="A drawing of an elephant."}
 
 
-## Map of most prevalent historic ecosystems
+## Historical Ecosystems, Mapped
 
 ![](img/bps.png){fig-alt="A drawing of an elephant."}
 
-## Notes on historical ecosystems
 
-- Most dominant 5 historical ecosystems (ones mapped) covered ~80% of the landscape
-- SE to NW line close to state border represents a LANDFIRE Map Zone.  These are essentially 'data delivery polygons' and may/may not represent ecological borders
-- Dominant ecosystems were fire-adapted/dependent (more on that in later slide)
+## Historical Ecosystems, Observations
 
-*LANDFIRE [Biophysical Settings](https://landfire.gov/bps.php) data was used for the 'historical ecosystems' chart and map.* 
+- The top 10 in the chart cover ~90% the landscape, the top 5 in the map cover ~80%
+- Fire adapted ecosystems were dominant
+- "Line" that goes from SE to NW follows LANDFIRE "Map Zones" (essentially data delivery polygons) line.  This pattern may or may not be "real".
+
+[*LANDFIRE Biophysical Settings Documentation*](https://landfire.gov/bps.php) 
+
+## Historical Annual Acres Burned
+
+```{r}
+
+hist_fire_chart <- ggplot(data = hist_fire, 
+                          aes(fill = fire_type, 
+                              y = acres, 
+                              x = reorder(BPS_NAME, acres))) +
+  geom_bar(position = "dodge", stat = "identity") +
+  coord_flip() +
+  scale_fill_manual(values = c("#e2ca1b", "#515151", "#cd7220", "#117733")) +
+  labs(title = "Almost all fires were surface",
+       x = "",
+       y = "Acres",
+       fill = "Fire Type ",
+       caption = "~1.8M acres per year total") +
+  scale_y_continuous(labels = scales::comma) +
+  theme_light()
+
+
+hist_fire_chart <- plotly::ggplotly(hist_fire_chart) %>% plotly::style(hoverinfo = "none")
+
+hist_fire_chart
+
+
+```
+
+* ZOOM in to see relatively rare replacement and surface fire types
+
+
+## Current Ecosystems, Quantified
+
+![](img/evtChart.png){fig-alt="A drawing of an elephant."}
+
+## Current Ecosystems, Mapped
+
+![](img/evt.png){fig-alt="A drawing of an elephant."}
+
+## Current Ecosystems, Observations
+
+- The top 10 in the chart cover ~90% the landscape, the top 5 in the map cover ~75%
+- Of the remining natural vegetation, the North-Central Interior Dry-Mesic Oak Forest and Woodland is dominant
+- ~20% of the area was mapped as 'ruderal' or 'pasture'...these areas may present an opportunity for restoration
+
+## Conversion
+
+```{r}
+
+
+# read in snkyPdata
+snkyPdata <- read_csv("data/bps2evt_sankey.csv")
+
+# define nodes
+nodes <- data.frame(
+         name=c(as.character(snkyPdata$source), 
+         as.character(snkyPdata$target)) %>% 
+          unique())
+
+# add source and target fields
+snkyPdata$IDsource <- match(snkyPdata$source, nodes$name)-1 
+snkyPdata$IDtarget <- match(snkyPdata$target, nodes$name)-1
+
+# Make the Network
+snkyP2 <- sankeyNetwork(Links = snkyPdata, 
+                       Nodes = nodes,
+                       Source = "IDsource", 
+                       Target = "IDtarget",
+                       Value = "value", 
+                       NodeID = "name", 
+                       width = 1100,
+                       height = 600, 
+                       fontSize=14,
+                       iterations = 0,
+                       sinksRight=FALSE,
+                       margin = 0)
+
+snkyP2
+
+```
+
+## Conversion notes
+
+* For the chart
+    * Historical BpSs on the left.  Bars sized by amount converted (not amount originally present).  Highly grouped Existing Vegetation Type data on the right. 
+    * Hover over horizontal bars to highlight connections for that system (e.g., hover over Agriculture to see what was converted to it)
+* ~4.5M acres of Oak Savanna has been converted; ~ 2.4M acres of that was converted to agricultural land types and ~1.3M is now mapped as 'Hardwood' types. 
+
+
+## Over and under represented succession classes
+
+```{r}
+
+## read data
+bps_scls3 <- read_csv("data/bpsScls.csv")
+
+## pivot data longer
+bps_scls3 <- bps_scls3 %>%
+  pivot_longer(
+    cols = c(`Reference`, `Current`), 
+    names_to = "refCur", 
+    values_to = "Percent"
+    )
+## order sclasses, then reverse 'cause I messed up (but maybe this will help someone later)
+# these HAVE TO MATCH what is in the spreadsheet
+# try making chart without lines 21-33 first to see how it looks
+bps_scls3$Sclass <- factor(bps_scls3$Sclass, levels = c(
+  "Regeneration", 
+  "Mid-development, open canopy", 
+  "Mid-development, closed canopy",
+  "Mid-development2, open canopy" ,
+  "Mid-development3, open canopy" ,
+  "Late-development, open canopy", 
+  "Late-development, closed canopy", 
+  "Late-development2, open canopy",
+  "Late-development3, closed canopy",
+  "UE", 
+  "UN", 
+  "Agriculture", 
+  "Urban"))
+# reverse
+#factor(bps_scls3$Sclass, levels = rev(levels(bps_scls3$Sclass)))
+
+# make chart.  NOTE lines 56 and 57 where I select the BpS to make the chart for.  Make sure to adjust title, etc.
+sclasplot <-
+  ggplot(bps_scls3, aes(fill=factor(refCur), y=Percent, x=Sclass)) + 
+  geom_col(width = 0.8, position = position_dodge()) +
+  coord_flip() +
+  #facet_grid(. ~BpS) +
+  scale_x_discrete(limits = rev(levels(bps_scls3$Sclass))) +
+  labs(
+    title = "Succession Classes past and present",
+    subtitle = "Top three most prevalent Biophysical Settings",
+    caption = "\nData from landfire.gov.",
+    x = "",
+    y = "Percent")+
+  theme_minimal(base_size = 20)+
+  theme(plot.caption = element_text(hjust = 0, face= "italic"), #Default is hjust=1
+        plot.title.position = "plot", #NEW parameter. Apply for subtitle too.
+        plot.caption.position =  "plot") +
+  scale_fill_manual(values = c("#3d4740", "#32a852" ), # present (grey), historical (green)
+                    name = " ", 
+                    labels = c("Present",
+                               "Past")) +
+  facet_grid(~BpS) +
+  theme(panel.spacing = unit(.05, "lines"),
+        panel.border = element_rect(color = "black", fill = NA, size = 1), 
+        strip.background = element_rect(color = "black", size = 1))
+
+sclasplot 
+```
+
+
+## Observations on succession classes
+
+* Conversion to agriculture trumps most changes
+* Reference percentages are averaged from multiple 'versions' of Biophysical Settings (BpSs) since the region crosses multiple Map Zones that often have different reference percentages
+* This work can be done for all BpSs.
+* Review of BpS documents necessary to fully understand charts
+
+## Known issues and next steps
+
+* Need to make maps of, and assess data from the CFCS
+* Map Zone line...may need to collapse oak types
+* Serve up data tables for exploration
+* Link to BpS documents
+* Map/chart current disturbances
+* ???
 
