@@ -4,13 +4,13 @@ author:
   - Randy Swaty
   - Powered by LANDFIRE and the Center for Resilient Conservation Science
 format: revealjs
-editor: visual
+editor: source
 ---
-
 
 ```{r setup}
 #| include: false
 
+options(scipen = 999999999)
 
 # for data wrangling and charts
 library(tidyverse)
@@ -31,11 +31,28 @@ library(sf)
 library(raster)
 library(tmap)
 
-# for interactive widgets may not be needed
+# for interactive widgets/chord may not be needed
 library(htmlwidgets)
+library(networkD3)
 
+
+
+
+# data
+hist_fire <- read_csv("data/hist_fire.csv", 
+    col_types = cols(surface_acres = col_number(), 
+        mixed_acres = col_number(), replacement_acres = col_number(), 
+        all_acres = col_number())) %>%
+  pivot_longer(!"BPS_NAME", names_to = 'fire_type', values_to = 'acres_burned') %>%
+  group_by(BPS_NAME, fire_type) %>%
+  summarise(acres = sum(acres_burned)) 
+
+hist_fire$acres <- round(hist_fire$acres, 0)
+  
+
+
+  
 ```
-
 
 ## Goals
 
@@ -52,10 +69,8 @@ library(htmlwidgets)
 
 ::: columns
 ::: {.column width="50%"}
-
--  Blah Blah Blah
--  Ann provides blah blah
-
+-   Blah Blah Blah
+-   Ann provides blah blah
 :::
 
 ::: {.column width="50%"}
@@ -82,24 +97,119 @@ tm_shape(shp) +
 :::
 :::
 
-
 ## LANDFIRE Placeholder Slide
 
-- LANDFIRE is...
+-   LANDFIRE is...
 
 ## TNC's LANDFIRE Team
 
 ![](img/team_graphic_2022.png){fig-alt="A drawing of an elephant."}
 
-
 ## Historical Ecosystems, Quantified
 
 ![](img/bpsChart.png){fig-alt="A drawing of an elephant."}
-
-- These top 10 cover most of the landscape
-- Fire adapted ecosystems were dominant
 
 
 ## Historical Ecosystems, Mapped
 
 ![](img/bps.png){fig-alt="A drawing of an elephant."}
+
+
+## Historical Ecosystems, Observations
+
+- The top 10 in the chart cover ~90% the landscape, the top 5 in the map cover ~80%
+- Fire adapted ecosystems were dominant
+- "Line" that goes from SE to NW follows LANDFIRE "Map Zones" (essentially data delivery polygons) line.  This pattern may or may not be "real".
+
+[*LANDFIRE Biophysical Settings Documentation*](https://landfire.gov/bps.php) 
+
+## Historical Annual Acres Burned
+
+```{r}
+
+hist_fire_chart <- ggplot(data = hist_fire, 
+                          aes(fill = fire_type, 
+                              y = acres, 
+                              x = reorder(BPS_NAME, acres))) +
+  geom_bar(position = "dodge", stat = "identity") +
+  coord_flip() +
+  scale_fill_manual(values = c("#e2ca1b", "#515151", "#cd7220", "#117733")) +
+  labs(title = "Almost all fires were surface",
+       x = "",
+       y = "Acres",
+       fill = "Fire Type ",
+       caption = "~1.8M acres per year total") +
+  scale_y_continuous(labels = scales::comma) +
+  theme_light()
+
+
+hist_fire_chart <- plotly::ggplotly(hist_fire_chart) %>% plotly::style(hoverinfo = "none")
+
+hist_fire_chart
+
+
+```
+
+* ZOOM in to see relatively rare replacement and surface fire types
+
+
+## Current Ecosystems, Quantified
+
+![](img/evtChart.png){fig-alt="A drawing of an elephant."}
+
+## Current Ecosystems, Mapped
+
+![](img/evt.png){fig-alt="A drawing of an elephant."}
+
+## Current Ecosystems, Observations
+
+- The top 10 in the chart cover ~90% the landscape, the top 5 in the map cover ~75%
+- Of the remining natural vegetation, the North-Central Interior Dry-Mesic Oak Forest and Woodland is dominant
+- ~20% of the area was mapped as 'ruderal' or 'pasture'...these areas may present an opportunity for restoration
+
+## Conversion
+
+```{r}
+
+
+# read in snkyPdata
+snkyPdata <- read_csv("data/bps2evt_sankey.csv")
+
+# define nodes
+nodes <- data.frame(
+         name=c(as.character(snkyPdata$source), 
+         as.character(snkyPdata$target)) %>% 
+          unique())
+
+# add source and target fields
+snkyPdata$IDsource <- match(snkyPdata$source, nodes$name)-1 
+snkyPdata$IDtarget <- match(snkyPdata$target, nodes$name)-1
+
+# Make the Network
+snkyP2 <- sankeyNetwork(Links = snkyPdata, 
+                       Nodes = nodes,
+                       Source = "IDsource", 
+                       Target = "IDtarget",
+                       Value = "value", 
+                       NodeID = "name", 
+                       width = 1100,
+                       height = 600, 
+                       fontSize=14,
+                       iterations = 0,
+                       sinksRight=FALSE,
+                       margin = 0)
+
+snkyP2
+
+```
+
+## Conversion notes
+
+* For the chart
+    * Historical BpSs on the left.  Bars sized by amount converted (not amount originally present).  Highly grouped Existing Vegetation Type data on the right. 
+    * Hover over horizontal bars to highlight connections for that system (e.g., hover over Agriculture to see what was converted to it)
+* ~4.5M acres of Oak Savanna has been converted; ~ 2.4M acres of that was converted to agricultural land types and ~1.3M is now mapped as 'Hardwood' types. 
+
+
+
+
